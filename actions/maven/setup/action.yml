@@ -1,0 +1,54 @@
+name: 'Setup Maven'
+description: 'Setup cache, Repositories Credentials and Project Version in pom'
+
+inputs:
+    packages_user:
+        required: true
+        description: 'Packages user from workflow'
+    packages_token:
+        required: true
+        description: 'Packages token from workflow'
+
+runs:
+    using: "composite"
+    steps:
+        -   name: Configure GitHub Packages Repository credentials for Maven
+            shell: bash
+            run: |
+                mkdir -p ~/.m2
+                cat > ~/.m2/settings.xml << EOF
+                <?xml version="1.0" encoding="UTF-8"?>
+                    <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+                                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                                https://maven.apache.org/xsd/settings-1.0.0.xsd">
+                    <servers>
+                        <server>
+                            <id>github</id>
+                            <username>${USERNAME}</username>
+                            <password>${TOKEN}</password>
+                        </server>
+                    </servers>
+                    <profiles>
+                        <profile>
+                            <id>github-packages</id>
+                            <!-- Additional Repositories -->
+                            <repositories>
+                                <repository>
+                                    <id>github</id>
+                                    <name>GitHub Packages</name>
+                                    <url>https://maven.pkg.github.com/bmc-anvil/*</url>
+                                </repository>
+                            </repositories>
+                        </profile>
+                    </profiles>
+                    <activeProfiles>
+                        <activeProfile>github-packages</activeProfile>
+                    </activeProfiles>
+                </settings>
+                EOF
+
+                cat ~/.m2/settings.xml
+            env:
+                USERNAME: ${{ inputs.packages_user }}
+                TOKEN: ${{ inputs.packages_token }}

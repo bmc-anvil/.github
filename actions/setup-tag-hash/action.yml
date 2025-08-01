@@ -1,0 +1,28 @@
+name: 'Validate Tag Hash'
+description: 'validates Tag or Hash to be used as project version in pom'
+
+inputs:
+    tag_or_hash:
+        required: false
+        description: 'Tag or hash to validate'
+
+runs:
+    using: "composite"
+    steps:
+        -   name: Manual version setup
+            shell: bash
+            if: ${{ inputs.tag_or_hash != ''}}
+            run: |
+                echo "PROJECT_VERSION=${{ inputs.tag_or_hash }}" >> $GITHUB_ENV
+
+        -   name: Version setup (Tag or Commit Hash)
+            shell: bash
+            if: ${{ inputs.tag_or_hash == '' }}
+            run: |
+                TAG=$(git describe --tags --exact-match 2>/dev/null || echo "")
+                if [ -z "$TAG" ]; then
+                  GIT_HASH=$(git rev-parse --short HEAD)
+                  echo "PROJECT_VERSION=$GIT_HASH" >> $GITHUB_ENV
+                else
+                  echo "PROJECT_VERSION=$TAG" >> $GITHUB_ENV
+                fi

@@ -1,0 +1,10 @@
+name: 'Install Project with Maven'
+description: 'Builds the project, runs all tests and install the resulting Jar into .m2 for later use'
+
+runs:
+    using: "composite"
+    steps:
+        -   name: Maven Install
+            shell: bash
+            run: |
+                ./mvnw clean install

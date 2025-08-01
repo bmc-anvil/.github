@@ -1,0 +1,21 @@
+name: 'Deploy Project with Maven'
+description: 'Deploys a Library / extension project to a Packages Registry'
+
+inputs:
+    github-token:
+        required: true
+        description: 'The GH Token'
+    deploy-package:
+        required: false
+        description: 'Option to deploy or not to GH Packages Registry'
+
+runs:
+    using: "composite"
+    steps:
+        -   name: Deploy Project to Registry
+            shell: bash
+            if: ${{ inputs.deploy-package == 'true' }}
+            env:
+                GITHUB_TOKEN: ${{ inputs.github-token }}
+            run: |
+                ./mvnw deploy -Pdeployable-jar -X

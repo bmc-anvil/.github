@@ -1,0 +1,73 @@
+name: 'Maven Cache'
+description: 'Muti-Layered Maven Cache with differentiated invalidation'
+
+runs:
+    using: "composite"
+    steps:
+        # Layer 1: Least frequent changes (maven wrapper)
+        -   name: Cache Maven dependencies
+            uses: actions/cache@v4
+            with:
+                path: |
+                    ~/.m2/wrapper
+                key: ${{ runner.os }}-maven-wrapper-${{ hashFiles('.mvn/wrapper/maven-wrapper.properties', 'mvnw', 'mvnw.cmd') }}
+                restore-keys: |
+                    ${{ runner.os }}-maven-wrapper-
+
+        # Layer 2: Framework Dependencies (Quarkus, Jakarta EE, etc.)
+        -   name: Cache Core Dependencies
+            uses: actions/cache@v4
+            with:
+                path: |
+                    ~/.m2/repository/jakarta
+                    ~/.m2/repository/org/eclipse
+                    ~/.m2/repository/io/quarkus
+                key: ${{ runner.os }}-maven-core-${{ hashFiles('**/pom.xml') }}
+                restore-keys: |
+                    ${{ runner.os }}-maven-core-
+
+        # Layer 3: Build Tools & Plugins
+        -   name: Cache Maven Plugins
+            uses: actions/cache@v4
+            with:
+                path: |
+                    ~/.m2/repository/org/apache/maven/plugins
+                    ~/.m2/repository/org/codehaus/mojo
+                    ~/.m2/repository/com/github/spotbugs
+                key: ${{ runner.os }}-maven-plugins-${{ hashFiles('**/pom.xml') }}
+                restore-keys: |
+                    ${{ runner.os }}-maven-plugins-
+
+        # Layer 4: Project Dependencies (most likely to change)
+        -   name: Cache Project Dependencies
+            uses: actions/cache@v4
+            with:
+                path: |
+                    ~/.m2/repository
+                key: ${{ runner.os }}-maven-deps-${{ hashFiles('**/pom.xml') }}-${{ github.run_id }}
+                restore-keys: |
+                    ${{ runner.os }}-maven-deps-${{ hashFiles('**/pom.xml') }}
+                    ${{ runner.os }}-maven-deps-
+                    ${{ runner.os }}-maven-core-
+                    ${{ runner.os }}-maven-plugins-
+
+        # Layer 5: Time-based weekly fallback
+        -   name: Cache Maven Weekly Fallback
+            uses: actions/cache@v4
+            with:
+                path: ~/.m2/repository
+                key: ${{ runner.os }}-maven-weekly-${{ steps.get-week.outputs.week }}
+                restore-keys: |
+                    ${{ runner.os }}-maven-weekly-
+
+        # Get current week for time-based caching
+        -   name: Get current week
+            id: get-week
+            shell: bash
+            run: echo "week=$(date +%Y-W%U)" >> $GITHUB_OUTPUT
+
+        # Optional: Clean snapshot dependencies to avoid stale artifacts
+        -   name: Clean snapshots
+            shell: bash
+            run: |
+                find ~/.m2/repository -name "*-SNAPSHOT" -type d -exec rm -rf {} + 2>/dev/null || true

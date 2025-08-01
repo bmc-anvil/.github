@@ -1,0 +1,110 @@
+name: publish-package
+on:
+    workflow_call:
+        inputs:
+            tag_or_hash:
+                description: "Optionally specify a Git Tag or commit hash to deploy"
+                required: false
+                type: string
+            java_version:
+                required: false
+                description: 'Java version'
+                type: string
+            java_url:
+                required: false
+                description: 'Url path to java JDK'
+                type: string
+            deploy_package:
+                required: false
+                description: "Flag to deploy a package to GH Registry"
+                type: boolean
+                default: false
+            checkstyle_skip:
+                required: false
+                description: 'Flag to skip the step altogether'
+                type: boolean
+                default: false
+
+        secrets:
+            PACKAGES_USER:
+                required: true
+                description: 'Packages user from workflow'
+            PACKAGES_TOKEN_RW:
+                required: true
+                description: 'Packages token from workflow'
+            GH_TOKEN:
+                required: true
+                description: 'The GitHub token from the calling workflow'
+
+jobs:
+    publish-package:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            packages: write
+            security-events: write
+
+        steps:
+            -   name: Checkout the repository
+                uses: actions/checkout@v4
+                with:
+                    ref: ${{ inputs.tag_or_hash != '' && inputs.tag_or_hash || github.ref_name }}
+
+            -   name: Sets either manual or current ref as PROJECT_VERSION
+                uses: bmc-anvil/bmc-devops/.github/actions/setup-tag-hash@master
+                with:
+                    tag_or_hash: ${{ inputs.tag_or_hash }}
+
+            -   name: Setup Java
+                uses: bmc-anvil/bmc-devops/.github/actions/setup-java@master
+                with:
+                    java_version: ${{inputs.java_version}}
+                    java_url: ${{inputs.java_url}}
+
+            -   name: Setup Maven
+                uses: bmc-anvil/bmc-devops/.github/actions/maven/setup@master
+                with:
+                    packages_user: ${{ secrets.PACKAGES_USER }}
+                    packages_token: ${{ secrets.PACKAGES_TOKEN_RW }}
+
+            #   Layered cache strategy:
+            #   This prevents frequently changing dependencies to invalidate the whole cache
+            ##  Least likely to change: (maven wrapper)
+            -   name: Cache Maven dependencies
+                uses: actions/cache@v4
+                with:
+                    path: |
+                        ~/.m2/wrapper
+                    key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+                    restore-keys: |
+                        ${{ runner.os }}-maven-
+
+            ##  More likely to change:
+            -   name: Cache Maven dependencies
+                uses: actions/cache@v4
+                with:
+                    path: |
+                        ~/.m2/repository
+                    key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+                    restore-keys: |
+                        ${{ runner.os }}-maven-
+
+            -   name: Run Checkstyle
+                uses: bmc-anvil/bmc-devops/.github/actions/maven/code-quality-checkstyle@master
+                with:
+                    fail-on-violations: 'false'
+                    github-token: ${{ secrets.GITHUB_TOKEN }}
+                    checkstyle_skip: ${{ inputs.checkstyle_skip }}
+
+            -   name: Build and Test
+                uses: bmc-anvil/bmc-devops/.github/actions/maven/install@master
+                continue-on-error: true
+
+            -   name: Setup Project Version
+                uses: bmc-anvil/bmc-devops/.github/actions/maven/setup-version@master
+
+            -   name: Deploy to Github Packages Registry
+                uses: bmc-anvil/bmc-devops/.github/actions/maven/deploy-package@master
+                with:
+                    github-token: ${{ secrets.PACKAGES_TOKEN_RW }}
+                    deploy-package: ${{ inputs.deploy_package }}

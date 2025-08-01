@@ -1,0 +1,10 @@
+name: 'Setup Project Version with Maven'
+description: 'Updates the Pom Project version'
+
+runs:
+    using: "composite"
+    steps:
+        -   name: Update Maven version with Git tag or hash
+            shell: bash
+            run: |
+                ./mvnw versions:set -DnewVersion="${{ env.PROJECT_VERSION }}"
