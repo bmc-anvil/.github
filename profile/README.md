@@ -17,15 +17,6 @@ I’ll do my best to publish companion notes to the [project's site](https://www
 Momentarily, GitHub does not support folders, therefore, nesting related repositories is not possible, which creates a bit of a confusing view.
 
 A workaround is to use a _pseudo-qualified-names_ approach.<br>
-Organizing repositories could be done by naming them like: `project.topic.subtopicA.suptopicB.xxx.actual_name_of_repo`
-
-i.e:
-
-- project.templates.gradle.parent_config
-- project.templates.gradle.quarkus_config
-- project.templates.maven.parent_config
-- project.templates.maven.quarkus_config
-
-Which will make it clear(er) at a glance... (I wished, though...)
-
+Organizing repositories could be done by naming them like: `project.topic.subtopicA.suptopicB.xxx.actual_name_of_repo`<br>
+Which will make it clear(er) at a glance... (I wished, though...)<br>
 I'm not super happy though... it is organized, kind of weird to read... 
