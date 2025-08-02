@@ -2,25 +2,30 @@
 
 This GitHub Organization holds all repositories related to BareMetalCode's Anvil project.
 
+## About
+
+**BareMetalCode’s Anvil** is a project management tool as many others, with a twist…
+
+The original purpose back in the day was to [build a showcase app](https://www.baremetalcode.com/bmc_showcase/).<br>
+Eventually that demo evolved into a proper full-featured application.
+
+As with the original app, this one too will follow the showcase approach in documentation concerns.<br>
+I’ll do my best to publish companion notes to the [project's site](https://www.bmc-anvil.com/) for each module and feature in the application.
+
 ## Repository organization
 
-Momentarily, GitHub does not support folders, therefore, nesting related repositories is not possible.<br>
-With many repositories this creates a bit of a confusing view.
+Momentarily, GitHub does not support folders, therefore, nesting related repositories is not possible, which creates a bit of a confusing view.
 
 A workaround is to use a _pseudo-qualified-names_ approach.<br>
-Organizing repositories could be done by naming them like:
+Organizing repositories could be done by naming them like: `project.topic.subtopicA.suptopicB.xxx.actual_name_of_repo`
 
-- [...]
-- `com.project.topic.subtopicA.suptopicB.xxx.actual_name_of_repo`
-- [...]
-- com.project.templates.gradle.parent_config
-- com.project.templates.gradle.spring_config
-- com.project.templates.maven.parent_config
-- com.project.templates.maven.quarkus_config
+i.e:
+
+- project.templates.gradle.parent_config
+- project.templates.gradle.quarkus_config
+- project.templates.maven.parent_config
+- project.templates.maven.quarkus_config
 
 Which will make it clear(er) at a glance... (I wished, though...)
 
-After renaming many repos, I find that this approach is evidently not a better solution than actually having folders support, but a little clearer
-view of relations between repositories.
-
-I'm not super happy though... it is organized, kind of eccentric to read... 
+I'm not super happy though... it is organized, kind of weird to read... 
