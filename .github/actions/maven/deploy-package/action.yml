@@ -18,4 +18,4 @@ runs:
             env:
                 GITHUB_TOKEN: ${{ inputs.github-token }}
             run: |
-                ./mvnw deploy -Pdeployable-jar -X
+                ./mvnw deploy -Pdeployable-jar
