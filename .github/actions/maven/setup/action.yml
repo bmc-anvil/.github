@@ -43,6 +43,12 @@ runs:
                                     <url>https://maven.pkg.github.com/bmc-anvil/*</url>
                                 </repository>
                             </repositories>
+                            <pluginRepositories>
+                                <pluginRepository>
+                                    <id>github</id>
+                                    <url>https://maven.pkg.github.com/bmc-anvil/*</url>
+                                </pluginRepository>
+                            </pluginRepositories>
                         </profile>
                     </profiles>
                     <activeProfiles>
