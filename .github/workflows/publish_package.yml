@@ -70,24 +70,24 @@ jobs:
             #   Layered cache strategy:
             #   This prevents frequently changing dependencies to invalidate the whole cache
             ##  Least likely to change: (maven wrapper)
-#            -   name: Cache Maven dependencies
-#                uses: actions/cache@v4
-#                with:
-#                    path: |
-#                        ~/.m2/wrapper
-#                    key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-#                    restore-keys: |
-#                        ${{ runner.os }}-maven-
-#
-#            ##  More likely to change:
-#            -   name: Cache Maven dependencies
-#                uses: actions/cache@v4
-#                with:
-#                    path: |
-#                        ~/.m2/repository
-#                    key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-#                    restore-keys: |
-#                        ${{ runner.os }}-maven-
+            -   name: Cache Maven dependencies
+                uses: actions/cache@v4
+                with:
+                    path: |
+                        ~/.m2/wrapper
+                    key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+                    restore-keys: |
+                        ${{ runner.os }}-maven-
+
+            ##  More likely to change:
+            -   name: Cache Maven dependencies
+                uses: actions/cache@v4
+                with:
+                    path: |
+                        ~/.m2/repository
+                    key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+                    restore-keys: |
+                        ${{ runner.os }}-maven-
 
             -   name: Run Checkstyle
                 uses: bmc-anvil/.github/.github/actions/maven/code-quality-checkstyle@master
