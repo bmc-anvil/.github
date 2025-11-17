@@ -18,8 +18,8 @@ runs:
             env:
                 # Set up here the java version and url as defaults to use everywhere
                 # Newer, Early Access and older versions can be found at https://jdk.java.net/
-                JAVA_VERSION_DEFAULT: "25.0.0"
-                JAVA_URL_DEFAULT: "https://download.java.net/java/GA/jdk25/bd75d5f9689641da8e1daabeccb5528b/36/GPL/openjdk-25_linux-x64_bin.tar.gz"
+                JAVA_VERSION_DEFAULT: "25.0.1"
+                JAVA_URL_DEFAULT: "https://download.java.net/java/GA/jdk25.0.1/2fbf10d8c78e40bd87641c434705079d/8/GPL/openjdk-25.0.1_linux-x64_bin.tar.gz"
 
                 # Set up here the java version and url from inputs
                 JAVA_VERSION: ${{ inputs.java_version }}
