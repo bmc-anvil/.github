@@ -24,7 +24,8 @@ This makes the use of CI/CD by caller projects transparent to users and allows s
 
 The `orchestrator flow` acts as an entry point to determine which workflow to call based on a given set of parameters.
 <br> It also contains common pre-/post-processing tasks; each one on its corresponding flow file.
-<br> The `orchestrator flow` itself, does not contain any action, it only lists all the parameters that can be called from a project and contains the corresponding
+<br> The `orchestrator flow` itself, does not contain any action, it only lists all the parameters that can be called from a project and contains the
+corresponding
 implementation flows with its selection logic.
 
 ### Visual representation of the workflows
@@ -67,8 +68,8 @@ sequenceDiagram
     end
     caller ->>+ orchestratorFlow: -START-
     orchestratorFlow ->>+ preProcessing: execute pre-processing tasks
-    preProcessing -->> preProcessing: execute 1st action
-    preProcessing -->> preProcessing: execute nth action
+    preProcessing -->> preProcessing: execute action 0
+    preProcessing -->> preProcessing: execute action n...
     preProcessing -->>- orchestratorFlow: done with pre-processing tasks
     orchestratorFlow ->>+ selectedFlow: execute selected flow
     selectedFlow -->> selectedFlow: execute action 0
@@ -178,10 +179,10 @@ stateDiagram-v2
 - general:
     - [post_processing_flow.yml](post_processing_flow.yml):
         - in charge of wrapping up the pipeline run
-    - pre_processing_flow.yml:
+    - [pre_processing_flow.yml](pre_processing_flow.yml):
         - in charge of all common starting actions
-    - orchestrator_flow.yml:
+    - [orchestrator_flow.yml](orchestrator_flow.yml):
         - in charge of executing the pre-/post-processing flows and to execute the appropriate pipeline flow based on a given set of parameters.
 - implementations:
-    - java_flow.yml
+    - [java_flow.yml](implementations/java_flow.yml)
         - in charge of executing the java-based projects pipeline.
