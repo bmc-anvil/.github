@@ -22,9 +22,9 @@ This makes the use of CI/CD by caller projects transparent to users and allows s
 
 ## How
 
-The `selector flow` acts as an entry point to determine which workflow to call based on a given set of parameters.
+The `orchestrator flow` acts as an entry point to determine which workflow to call based on a given set of parameters.
 <br> It also contains common pre-/post-processing tasks; each one on its corresponding flow file.
-<br> The `selector flow` itself, does not contain any action, it only lists all the parameters that can be called from a project and contains the corresponding
+<br> The `orchestrator flow` itself, does not contain any action, it only lists all the parameters that can be called from a project and contains the corresponding
 implementation flows with its selection logic.
 
 ### Visual representation of the workflows
@@ -33,11 +33,11 @@ implementation flows with its selection logic.
 
 The events will happen as follows:
 
-1. A `Caller Repository` workflow is triggered by some event and initiates the flow by calling the `selector flow`:
-    1. Each repository calls the `selector flow` with a given set of options (`inputs` in GitHub parlance).
-2. The `selector flow` executes common `pre-processing tasks`:
+1. A `Caller Repository` workflow is triggered by some event and initiates the flow by calling the `orchestrator flow`:
+    1. Each repository calls the `orchestrator flow` with a given set of options (`inputs` in GitHub parlance).
+2. The `orchestrator flow` executes common `pre-processing tasks`:
     1. i.e.: check out the repo, set versions, etc.
-3. The `selector flow` selects the proper flow based on the provided parameters:
+3. The `orchestrator flow` selects the proper flow based on the provided parameters:
     1. i.e.: select `java flow`, or `Node.js + typescript flow`, etc...
 4. The selected flow executes its actions and possibly calls another flow.
     1. action 0.
@@ -46,9 +46,9 @@ The events will happen as follows:
         1. inner flow action 0
         2. inner flow action n...
     4. action n...
-5. The `selector flow` executes common `post-processing tasks`:
+5. The `orchestrator flow` executes common `post-processing tasks`:
     1. i.e.: upload some log files, cleanup, send notification to a channel, or mail, etc.
-6. The `selector flow` concludes the workflow and returns a completion status.
+6. The `orchestrator flow` concludes the workflow and returns a completion status.
 
 #### Sequence Diagram
 
@@ -56,30 +56,33 @@ Below is a sequence of the events.
 
 ```mermaid
 sequenceDiagram
-    participant caller as Caller Repository
-    participant selectorFlow as Selector Flow
-    participant preTasks as Pre-Processing Flow
-    participant selectedFlow as Selected Flow
-    participant innerFlow as Inner Flow
-    participant postTasks as Post-Processing Flow
-    caller ->> selectorFlow: -START-
-    selectorFlow ->> preTasks: execute pre-processing tasks
-    preTasks -->> preTasks: execute 1st action
-    preTasks -->> preTasks: execute nth action
-    preTasks -->> selectorFlow: done with pre-processing tasks
-    selectorFlow ->> selectedFlow: execute selected flow
-    selectedFlow -->> selectedFlow: execute 1st action
-    selectedFlow ->> innerFlow: call an inner workflow
+    autonumber
+    actor caller as Caller Repository
+    box rgb(20,20,20) COMMON WORKFLOW
+        participant orchestratorFlow as orchestrator flow
+        participant preProcessing as Pre-Processing Flow
+        participant selectedFlow as Selected Flow
+        participant innerFlow as Inner Flow
+        participant postProcessing as Post-Processing Flow
+    end
+    caller ->>+ orchestratorFlow: -START-
+    orchestratorFlow ->>+ preProcessing: execute pre-processing tasks
+    preProcessing -->> preProcessing: execute 1st action
+    preProcessing -->> preProcessing: execute nth action
+    preProcessing -->>- orchestratorFlow: done with pre-processing tasks
+    orchestratorFlow ->>+ selectedFlow: execute selected flow
+    selectedFlow -->> selectedFlow: execute action 0
+    selectedFlow ->>+ innerFlow: call an inner workflow
     innerFlow ->> innerFlow: execute inner flow action 0
     innerFlow ->> innerFlow: execute inner flow action n...
-    innerFlow -->> selectedFlow: done with inner workflow
-    selectedFlow -->> selectedFlow: execute nth action
-    selectedFlow -->> selectorFlow: done with selected flow
-    selectorFlow ->> postTasks: execute post-processing tasks
-    postTasks -->> postTasks: execute 1st action
-    postTasks -->> postTasks: execute nth action
-    postTasks -->> selectorFlow: done with post-processing tasks
-    selectorFlow ->> caller: -END-
+    innerFlow -->>- selectedFlow: done with inner workflow
+    selectedFlow -->> selectedFlow: execute action n...
+    selectedFlow -->>- orchestratorFlow: done with selected flow
+    orchestratorFlow ->>+ postProcessing: execute post-processing tasks
+    postProcessing -->> postProcessing: execute action 0
+    postProcessing -->> postProcessing: execute action n...
+    postProcessing -->>- orchestratorFlow: done with post-processing tasks
+    orchestratorFlow ->>- caller: -END-
 ```
 
 #### FlowChart Diagram
@@ -103,7 +106,7 @@ stateDiagram-v2
 %% Nodes
     callerStart: Caller Repository
     callerEnd: Caller Repository
-    selectorFlow: SELECTOR FLOW
+    orchestratorFlow: ORCHESTRATOR FLOW
     preProcessing: Pre-Processing Flow
     selectedFlow: Selected Flow - JAVA
     nonSelectedFlow0: Non Selected Flow - GOLANG
@@ -120,11 +123,11 @@ stateDiagram-v2
     innerFlow: Inner Workflow
 %% Pipeline Sequence    
     [*] --> callerStart
-    callerStart --> selectorFlow
-    selectorFlow --> callerEnd
+    callerStart --> orchestratorFlow
+    orchestratorFlow --> callerEnd
     callerEnd --> [*]
 %% Individual Flows
-    state selectorFlow {
+    state orchestratorFlow {
         direction LR
         state selector <<choice>>
         [*] --> preProcessing
@@ -173,11 +176,11 @@ stateDiagram-v2
 ## Current Workflows:
 
 - general:
-    - post_processing_flow.yml:
+    - [post_processing_flow.yml](post_processing_flow.yml):
         - in charge of wrapping up the pipeline run
     - pre_processing_flow.yml:
         - in charge of all common starting actions
-    - selector_flow.yml:
+    - orchestrator_flow.yml:
         - in charge of executing the pre-/post-processing flows and to execute the appropriate pipeline flow based on a given set of parameters.
 - implementations:
     - java_flow.yml
