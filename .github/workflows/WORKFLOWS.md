@@ -92,9 +92,7 @@ I am adding here a little more visual detail to the previous diagram.
 
 Treat the names of the actions and workflows as examples, they can translate in the actual code or not, they are here just for added clarity.
 
-> **Note**:
->
-> Why draw a flowchart with a state diagram (_you did not ask at all..._)?
+> **Note**: Why draw a flowchart with a state diagram (_not that anyone asked at all..._)?
 >
 > A Mermaid flowchart does not anchor to subgraphs, forcing me to create an intricate set of subgraphs with dummy nodes inside that must receive the calls to
 > render correctly.
