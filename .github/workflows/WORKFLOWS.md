@@ -74,8 +74,8 @@ sequenceDiagram
     orchestratorFlow ->>+ selectedFlow: execute selected flow
     selectedFlow -->> selectedFlow: execute action 0
     selectedFlow ->>+ innerFlow: call an inner workflow
-    innerFlow ->> innerFlow: execute inner flow action 0
-    innerFlow ->> innerFlow: execute inner flow action n...
+    innerFlow -->> innerFlow: execute inner flow action 0
+    innerFlow -->> innerFlow: execute inner flow action n...
     innerFlow -->>- selectedFlow: done with inner workflow
     selectedFlow -->> selectedFlow: execute action n...
     selectedFlow -->>- orchestratorFlow: done with selected flow
