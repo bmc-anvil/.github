@@ -1,0 +1,69 @@
+name: 'Set up Java'
+description: 'Set up supported Java vendor and vendors'
+
+# setup-java action docs: https://github.com/actions/setup-java/tree/main
+# setup-java action advanced docs: https://github.com/actions/setup-java/blob/main/docs/advanced-usage.md
+#
+# The "setup-java action" has some built-in java vendors but no default Oracle build of the OpenJDK.
+# Oracle has for some time now a "free - no license fee" implementation of OpenJDK, and it is the closest to OpenJDK, so selecting oracle
+# will be the default option.
+#
+# In case this changes in the future, openjdk or maybe temurin will become the default option.
+# OpenJDK is an option as most vendors do not offer the early access builds that can be found in https://jdk.java.net/.
+
+inputs:
+    java_vendor:
+        required: false
+        description: 'Supported vendors: oracle (default), temurin and openjdk (via https://jdk.java.net/ download).'
+        default: 'oracle'
+    java_version:
+        required: false
+        description: 'Java version, defaults to latest LTS'
+        default: '25'
+
+    # this 2 inputs... It is more elegant maybe that some fidgeting in the shell, but the repetition... not elegant...
+    supported_vendors_all:
+        required: false
+        description: 'List of supported Java vendors for validation'
+        default: '["oracle","temurin","openjdk"]'
+    supported_vendors_gh_action:
+        required: false
+        description: 'List of supported Java vendors for validation'
+        default: '["oracle","temurin"]'
+
+runs:
+    using: "composite"
+    steps:
+        -   name: Validate supported vendors
+            if: ${{ !contains(fromJSON(inputs.supported_vendors_all), inputs.java_vendor) }}
+            shell: bash
+            run: |
+                echo "Unsupported vendor: ${{ inputs.java_vendor }}. Supported vendors are: ${{ inputs.supported_vendors_all }}"
+                exit 1
+
+        -   name: Set up OpenJDK
+            id: setup-java-openjdk
+            if: ${{ inputs.java_vendor == 'openjdk' }}
+            uses: bmc-anvil/.github/.github/actions/setup-java-openjdk@main
+            with:
+                java_version: ${{ inputs.java_version }}
+
+        -   name: Set up other supported JDKs
+            id: setup-java-other-jdk
+            if: ${{ contains(fromJSON(inputs.supported_vendors_gh_action), inputs.java_vendor) }}
+            uses: actions/setup-java@v5
+            with:
+                distribution: ${{ inputs.java_vendor }}
+                java-version: ${{ inputs.java_version }}
+
+        -   name: Monitor Java Installation
+            id: monitor-java-installation
+            shell: bash
+            run: |
+                echo "JAVA_HOME: $JAVA_HOME"
+                echo "PATH: $PATH"
+                which java
+                file $(which java)
+                java -version
+                echo "Java vendor is identified as: "
+                java -XshowSettings:properties -version 2>&1 | grep vendor

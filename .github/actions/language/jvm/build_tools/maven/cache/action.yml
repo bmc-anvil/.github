@@ -1,0 +1,33 @@
+name: 'Maven Cache'
+description: 'Muti-Layered Maven cache with differentiated invalidation'
+
+runs:
+    using: "composite"
+    steps:
+        # Layer 1: Least frequent changes (i.e. maven wrapper)
+        # I am only using maven-wrapper.properties here, where wrapper and maven distribution versions are specified and not considering the mvnw scripts.
+        -   name: Cache Maven Wrapper and Maven Distribution
+            uses: actions/cache@v4
+            with:
+                path: ~/.m2/wrapper
+                key: ${{ runner.os }}-maven-wrapper-${{ hashFiles('.mvn/wrapper/maven-wrapper.properties') }}
+                restore-keys: |
+                    ${{ runner.os }}-maven-wrapper-
+
+        # Layer 2: Framework and Libraries Dependencies
+        -   name: Cache Dependencies
+            uses: actions/cache@v4
+            with:
+                path: ~/.m2/repository/
+                key: ${{ runner.os }}-maven-dependencies-${{ hashFiles('**/pom.xml') }}
+                restore-keys: |
+                    ${{ runner.os }}-maven-dependencies-
+
+        # Layer 3: Build Tools & Plugins or brake down per xxx
+        # Layer 3: Upcoming...
+        # Layer 3: I could read the pom -> properties for ".version" or "plugin.version" changes and differentiated create keys
+        # Layer 3: as plugins may change less frequently than lib dependencies
+        # Layer 3: this will require some convention on poms though... but
+        # Layer 3: will allow for slow moving changes and fast moving changes to have their own keys
+        # Layer 3: slow moving -> plugins
+        # Layer 3: fast moving -> libraries

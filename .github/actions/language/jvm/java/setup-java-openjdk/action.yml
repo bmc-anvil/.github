@@ -1,0 +1,60 @@
+name: 'Setup Java OpenJDK'
+description: 'Download OpenJDK and set up Java'
+
+# setup-java action docs: https://github.com/actions/setup-java/tree/main
+# setup-java action advanced docs: https://github.com/actions/setup-java/blob/main/docs/advanced-usage.md
+# https://jdk.java.net/
+
+inputs:
+    java_version:
+        required: false
+        description: 'Java version, defaults to latest LTS'
+        default: '25'
+
+runs:
+    using: "composite"
+    steps:
+        -   name: Setup OpenJDK
+            id: setup-version-openjdk
+            shell: bash
+            run: |
+                # fail fast directive
+                set -euo pipefail
+                
+                # Version -> URL map
+                declare -A JAVA_VERSION_URL=(
+                  ["25"]="https://download.java.net/java/GA/jdk25.0.2/b1e0dfa218384cb9959bdcb897162d4e/10/GPL/openjdk-25.0.2_linux-x64_bin.tar.gz"
+                  ["26"]="https://download.java.net/java/GA/jdk26/c3cc523845074aa0af4f5e1e1ed4151d/35/GPL/openjdk-26_linux-x64_bin.tar.gz"
+                  ["27"]="https://download.java.net/java/early_access/jdk27/10/GPL/openjdk-27-ea+10_linux-x64_bin.tar.gz"
+                )
+
+                # 1) Pick URL based on version or empty if the version is unknown. 
+                if [ -z "$JAVA_URL" ]; then
+                  JAVA_URL="${JAVA_VERSION_URL[${{ inputs.java_version }}]:-}"
+                fi
+
+                if [ -z "$JAVA_URL" ]; then
+                  echo "unsupported java version [${{ inputs.java_version }}]"
+                  (IFS=", "; echo "supported versions for OpenJDK are: ${!JAVA_VERSION_URL[*]}")
+                  exit 1
+                fi
+
+                # 2) Export for later steps
+                echo "JAVA_VERSION=$JAVA_VERSION" >> "$GITHUB_ENV"
+                echo "JAVA_URL=$JAVA_URL" >> "$GITHUB_ENV"
+
+        -   name: Download OpenJDK
+            id: download-openjdk
+            shell: bash
+            run: |
+                echo "downloading GNU GPL Licensed OpenJDK version: ${{ env.JAVA_VERSION }} from ${{ env.JAVA_URL }}"
+                wget -O $RUNNER_TEMP/java_package.tar.gz "${{ env.JAVA_URL }}"
+
+        -   name: Set up JDK for OpenJDK
+            id: setup-java-openjdk
+            uses: actions/setup-java@v5
+            with:
+                distribution: 'jdkfile'
+                jdkFile: ${{ runner.temp }}/java_package.tar.gz
+                java-version: ${{ env.JAVA_VERSION }}
+                architecture: x64

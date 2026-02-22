@@ -1,0 +1,17 @@
+name: post_processing_flow.yml
+on:
+    workflow_call:
+
+jobs:
+    post-processing:
+        runs-on: ubuntu-latest
+        steps:
+            -   name: Run post-processing steps
+                shell: bash
+                # Add any post-processing steps here
+                run: |
+                    echo "Post processing actions"
+                    echo "Sending a notification message to some channel"
+                    echo "Uploading something or other"
+
+# if everything is fine, and there is a new tag that is not a git-hash, then also create and push the new tag

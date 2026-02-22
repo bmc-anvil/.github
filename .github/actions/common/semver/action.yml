@@ -1,0 +1,85 @@
+name: 'Semantic Versioning'
+description: 'Semantic Versioning with automatic and manual dispatch'
+
+inputs:
+    version:
+        description: 'Explicit version for manual dispatch (i.e., 1.2.3, no letters supported momentarily, maybe never)'
+        required: false
+    semver_bump:
+        description: "SemVer bump type for manual dispatch: major|minor|patch ('none' is not supported momentarily, maybe never)"
+        required: false
+        default: "patch"
+
+runs:
+    using: "composite"
+    steps:
+        -   name: Set version from release tag (manual dispatch)
+            shell: bash
+            if: ${{ github.event_name == 'release' }}
+            run: |
+                echo "PROJECT_VERSION=${{ github.event.release.tag_name }}" >> $GITHUB_ENV
+
+        -   name: Set version from within actions (manual dispatch)
+            shell: bash
+            if: ${{ github.event_name == 'workflow_dispatch' && inputs.version != '' }}
+            run: |
+                echo "PROJECT_VERSION=${{ inputs.version }}" >> $GITHUB_ENV
+
+        -   name: Set version using git hash ref on non-main branches
+            shell: bash
+            if: ${{ github.ref != 'refs/heads/main' && github.event_name != 'release' && github.event_name != 'workflow_dispatch' }}
+            run: |
+                echo "using git hash ref as PROJECT_VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
+
+        -   name: Set version using SemVer on main branch
+            shell: bash
+            if: ${{ github.ref == 'refs/heads/main' && github.event_name != 'release' && github.event_name != 'workflow_dispatch' }}
+
+            run: |
+                # fail fast directive
+                set -euo pipefail
+                
+                # Default SEMVER_BUMP comes from inputs (defaults to 'patch')
+                SEMVER_BUMP="${{ inputs.semver_bump }}"
+
+                # Commit message SemVer override
+                MSG=$(git log -1 --pretty=%B)
+                if echo "$MSG" | grep -q ">>major"; then SEMVER_BUMP="major"; fi
+                if echo "$MSG" | grep -q ">>minor"; then SEMVER_BUMP="minor"; fi
+                # Latest tag (X.Y.Z); fallback to v0.0.1
+
+                LAST_TAG=$(git tag --list --sort=-v:refname | head -n1)
+                if [ -z "$LAST_TAG" ]; then LAST_TAG="0.0.1"; fi
+                echo "Bumping from latest tag: $LAST_TAG"
+
+                VERSION=${LAST_TAG}
+                # Sanitize last tag: remove pre-release/build suffixes (anything after - or +)
+                VERSION=$(echo "$VERSION" | sed 's/[-+].*//')
+                
+                # Ensure at least 3 parts (X.Y.Z), padding with .0 if needed
+                PARTS=(${VERSION//./ })
+                LEN=${#PARTS[@]}
+                if [ $LEN -lt 3 ]; then
+                  VERSION="${VERSION}.0"
+                  if [ $LEN -eq 1 ]; then VERSION="${VERSION}.0"; fi
+                fi
+                
+                # Parse MAJOR, MINOR, PATCH
+                IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+                
+                # If PATCH is not numeric (e.g., "test"), set to 1
+                if ! [[ $PATCH =~ ^[0-9]+$ ]]; then PATCH=1; fi
+
+                case "$SEMVER_BUMP" in
+                  major) MAJOR=$((MAJOR+1)); MINOR=0; PATCH=0 ;;
+                  minor) MINOR=$((MINOR+1)); PATCH=0 ;;
+                  patch) PATCH=$((PATCH+1)) ;;
+                  *) echo "Invalid SEMVER_BUMP: $SEMVER_BUMP"; exit 1 ;;
+                esac
+
+                NEW_TAG="${MAJOR}.${MINOR}.${PATCH}"
+                echo "PROJECT_VERSION=$NEW_TAG" >> $GITHUB_ENV
+                fi
+
+        -   name: push version as git tag
+            uses: bmc-anvil/.github/.github/actions/common/push-git-tag@main

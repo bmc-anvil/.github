@@ -1,0 +1,113 @@
+# flow-selector workflow:
+# -
+# this workflow executes the bare minimum steps common to all other workflows and then selects the appropriate workflow to run based on the language and passes
+# the required inputs to each.
+# -
+name: flow-selector
+on:
+    workflow_call:
+        # all inputs are required, so I do not forget to add them on inheriting pipelines, we'll see in the future if this holds at scale.
+        # it will make it clearer to have all options on repositories workflows explicitly declared.
+        # when more flows are added, many of these inputs will revert to 'required: false' as a few will not make sense for a given set of tools.
+        inputs:
+            build_tool:
+                required: true
+                description: "build tool used by the project"
+                type: string
+                default: 'maven' # options are {maven, Gradle, npm, sbt}. Only maven is valid. This is here as a proof for the abstraction.
+            build_type:
+                required: true
+                description: 'final object type to be built by the pipeline'
+                type: string
+                default: 'artifact' # options are {artifact, docker_image_jvm, docker_image_graal_native, docker_image_graal_native_multiarch(?)}
+            java_vendor:
+                required: true
+                description: 'Supports: oracle, temurin and openjdk (via https://jdk.java.net/ download). Default: oracle'
+                type: string
+            language:
+                required: true
+                description: 'language to use on the runner'
+                type: string
+                default: 'java' # options are {java, scala, Node.js, go}. Only java is valid. This is here as a proof for the abstraction.
+            language_version:
+                required: true
+                description: 'language version to use on the runner'
+                type: string
+                default: 'latest'
+            services_docker_in_docker:
+                required: true
+                description: "configures the pipeline as requiring a docker in docker setup, for 'test containers' for example"
+                type: boolean
+                default: false
+            # both <static_analysis_checkstyle_skip>, <static_analysis_checkstyle_fail_on_violations> as above with tests maybe makes some sense while
+            # stabilizing the project. It can make sense on work branches and be removed from merge to main runs.
+            static_analysis_checkstyle_skip:
+                required: true
+                description: 'flag to skip the checkstyle validation step altogether'
+                type: boolean
+                default: false
+            static_analysis_checkstyle_fail_on_violations:
+                required: true
+                description: 'flag to fail or not the pipeline on checkstyle violations'
+                type: boolean
+                default: false
+            # <test_options_skip> this maybe makes some sense while stabilizing the project. Afterward, there should be no option to skip tests.
+            # it can make sense on work branches and be removed from merge to main runs.
+            testing_options_skip:
+                required: true
+                description: 'skip all tests'
+                type: boolean
+                default: false
+            versioning_semver_bump:
+                required: true
+                description: "SemVer bump type for manual dispatch: major|minor|patch ('none' is not supported momentarily, maybe never)"
+                type: string
+                default: 'patch'
+            versioning_version:
+                required: true
+                description: 'Manually setting a version'
+                type: string
+            workflow_dry_run:
+                required: true
+                description: 'runs the pipeline with no deploy / publish'
+                type: boolean
+                default: false
+
+        secrets:
+            # check which secrets are really required
+            PACKAGES_USER:
+                required: true
+                description: 'Packages user from workflow'
+            PACKAGES_TOKEN_RW:
+                required: true
+                description: 'Packages token from workflow'
+            GH_TOKEN:
+                required: true
+                description: 'The GitHub token from the calling workflow'
+
+jobs:
+    pre-processing-flow:
+        uses: bmc-anvil/.github/.github/workflows/pre_processing_flow@main
+        with:
+            bump: ${{ inputs.versioning_semver_bump }}
+            version: ${{ inputs.versioning_version }}
+
+    # there can be any numbers of flows in the future, this will keep additions and modifications transparent to the caller
+    # a close candidate to existing will be the front end flows that use Node.js / npm, etc.
+    flow-selector-java:
+        needs: pre-processing-flow
+        if: ${{ inputs.language == 'java' }}
+        uses: bmc-anvil/.github/.github/workflows/java-flow@main
+        with:
+            build_tool: ${{inputs.build_tool}}
+            build_type: ${{inputs.build_type}}
+            java_vendor: ${{inputs.java_vendor}}
+            java_version: ${{inputs.language_version}}
+            services_docker_in_docker: ${{inputs.services_docker_in_docker}}
+            static_analysis_checkstyle_fail_on_violations: ${{inputs.static_analysis_checkstyle_fail_on_violations}}
+            static_analysis_checkstyle_skip: ${{inputs.static_analysis_checkstyle_skip}}
+            test_options_skip: ${{inputs.java_version}}
+
+    post-processing-flow:
+        needs: [ pre-processing-flow, flow-selector-java ]
+        uses: bmc-anvil/.github/.github/workflows/post_processing_flow@main

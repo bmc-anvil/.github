@@ -25,8 +25,7 @@ This makes the use of CI/CD by caller projects transparent to users and allows s
 The `orchestrator flow` acts as an entry point to determine which workflow to call based on a given set of parameters.
 <br> It also contains common pre-/post-processing tasks; each one on its corresponding flow file.
 <br> The `orchestrator flow` itself, does not contain any action, it only lists all the parameters that can be called from a project and contains the
-corresponding
-implementation flows with its selection logic.
+corresponding implementation flows with its selection logic.
 
 ### Visual representation of the workflows
 
@@ -94,9 +93,9 @@ Treat the names of the actions and workflows as examples, they can translate in 
 
 > **Note**: Why draw a flowchart with a state diagram (_not that anyone asked at all..._)?
 >
-> A Mermaid flowchart does not anchor to subgraphs, forcing me to create an intricate set of subgraphs with dummy nodes inside that must receive the calls to
+> A Mermaid flowchart does not (at least now...) anchor to subgraphs, forcing me to create an intricate set of subgraphs with dummy nodes inside, that must receive the calls to
 > render correctly.
-> <br>You cannot also reference subgraphs declared elsewhere inside a flow as you can with states.
+> <br>You also cannot reference subgraphs declared elsewhere inside a flow as you can with states.
 > <br>State diagrams are far easier to build, and they render cleaner and are more expressive in this particular case.
 
 ```mermaid
@@ -169,7 +168,6 @@ stateDiagram-v2
         action4 --> action5
         action5 --> [*]
     }
-
 ```
 
 ## Current Workflows:

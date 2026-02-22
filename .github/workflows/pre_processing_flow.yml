@@ -1,0 +1,25 @@
+name: 'Pre Processing Flow'
+on:
+    workflow_call:
+
+jobs:
+    pre-processing-flow:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            packages: write
+            id-token: write
+
+        steps:
+            -   name: start pre-processing
+                shell: bash
+                run: |
+                    echo "Pre-processing flow started"
+
+            -   name: Checkout the repository
+                uses: actions/checkout@v6
+
+            -   name: wrap pre-processing
+                shell: bash
+                run: |
+                    echo "Pre-processing flow completed"

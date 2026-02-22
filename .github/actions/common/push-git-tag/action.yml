@@ -1,0 +1,21 @@
+name: 'Push git tag'
+description: 'Pushes a git tag from environment variable PROJECT_VERSION'
+
+runs:
+    using: "composite"
+    steps:
+        -   name: Create and push git tag from PROJECT_VERSION environment variable
+            shell: bash
+            run: |
+                echo "PROJECT_VERSION=${{ env.PROJECT_VERSION }}"
+                git config --global user.email "github-actions[bot]@users.noreply.github.com"
+                git config --global user.name "github-actions[bot]"
+                
+                 # Check if the tag already exists
+                if git tag --list | grep -q "^${NEW_TAG}$"; then
+                   # Parse MAJOR, MINOR, PATCH and bump patch 
+                    IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+                fi
+                
+                git tag -a "${{ env.PROJECT_VERSION }}" -m "Release ${env.PROJECT_VERSION}"
+                git push origin "${{ env.PROJECT_VERSION }}" --force-with-lease

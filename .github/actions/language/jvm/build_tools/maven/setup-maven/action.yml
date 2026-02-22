@@ -1,5 +1,5 @@
-name: 'Setup Maven'
-description: 'Setup cache, Repositories Credentials and Project Version in pom'
+name: 'Set up Maven'
+description: 'Set up Maven settings file'
 
 inputs:
     packages_user:
@@ -12,11 +12,8 @@ inputs:
 runs:
     using: "composite"
     steps:
-        -   name: Configure GitHub Packages Repository credentials for Maven
+        -   name: Configure GitHub Packages Repository for Maven
             shell: bash
-            env:
-                USERNAME: ${{ inputs.packages_user }}
-                TOKEN: ${{ inputs.packages_token }}
             run: |
                 mkdir -p ~/.m2
                 cat > ~/.m2/settings.xml << EOF
@@ -28,8 +25,8 @@ runs:
                     <servers>
                         <server>
                             <id>github</id>
-                            <username>${USERNAME}</username>
-                            <password>${TOKEN}</password>
+                            <username>${{ inputs.packages_user }}</username>
+                            <password>${{ inputs.packages_token }}</password>
                         </server>
                     </servers>
                     <profiles>
