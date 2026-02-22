@@ -87,17 +87,14 @@ on:
 
 jobs:
     pre-processing-flow:
-        uses: bmc-anvil/.github/.github/workflows/pre_processing_flow@main
-        with:
-            bump: ${{ inputs.versioning_semver_bump }}
-            version: ${{ inputs.versioning_version }}
+        uses: ./.github/workflows/pre_processing_flow.yml
 
     # there can be any numbers of flows in the future, this will keep additions and modifications transparent to the caller
     # a close candidate to existing will be the front end flows that use Node.js / npm, etc.
     flow-selector-java:
         needs: pre-processing-flow
         if: ${{ inputs.language == 'java' }}
-        uses: bmc-anvil/.github/.github/workflows/java-flow@main
+        uses: ./.github/workflows/implementations/java-flow.yml
         with:
             build_tool: ${{inputs.build_tool}}
             build_type: ${{inputs.build_type}}
@@ -106,8 +103,8 @@ jobs:
             services_docker_in_docker: ${{inputs.services_docker_in_docker}}
             static_analysis_checkstyle_fail_on_violations: ${{inputs.static_analysis_checkstyle_fail_on_violations}}
             static_analysis_checkstyle_skip: ${{inputs.static_analysis_checkstyle_skip}}
-            test_options_skip: ${{inputs.java_version}}
+            test_options_skip: ${{inputs.test_options_skip}}
 
     post-processing-flow:
         needs: [ pre-processing-flow, flow-selector-java ]
-        uses: bmc-anvil/.github/.github/workflows/post_processing_flow@main
+        uses: ./.github/workflows/post_processing_flow.yml

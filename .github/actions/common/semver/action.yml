@@ -82,4 +82,4 @@ runs:
                 fi
 
         -   name: push version as git tag
-            uses: bmc-anvil/.github/.github/actions/common/push-git-tag@main
+            uses: ./.github/actions/common/push-git-tag@main

@@ -44,7 +44,7 @@ runs:
         -   name: Set up OpenJDK
             id: setup-java-openjdk
             if: ${{ inputs.java_vendor == 'openjdk' }}
-            uses: bmc-anvil/.github/.github/actions/setup-java-openjdk@main
+            uses: ./.github/actions/setup-java-openjdk@main
             with:
                 java_version: ${{ inputs.java_version }}
 
