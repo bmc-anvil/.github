@@ -15,7 +15,7 @@ themselves.
 
 The actions used by this flow are:
 
-- [Set up Java (get the JDK)](../../actions/common/semver)
+- [Set up Java (get the JDK)](../actions/common/semver)
 - Set up Maven (get the wrapper, setup config)
 - Set up Dependency cache
 - Run Static Analysis (Checkstyle / Sonar / Qodana / etc.)

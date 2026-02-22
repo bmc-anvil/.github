@@ -180,5 +180,5 @@ stateDiagram-v2
     - [orchestrator_flow.yml](orchestrator_flow.yml):
         - in charge of executing the pre-/post-processing flows and to execute the appropriate pipeline flow based on a given set of parameters.
 - implementations:
-    - [java_flow.yml](implementations/java_flow.yml)
+    - [java_flow.yml](java_flow.yml)
         - in charge of executing the java-based projects pipeline.
