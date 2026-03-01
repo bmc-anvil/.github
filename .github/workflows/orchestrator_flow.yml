@@ -1,20 +1,17 @@
-# flow-selector workflow:
+# orchestrator flow:
 # -
 # this workflow executes the bare minimum steps common to all other workflows and then selects the appropriate workflow to run based on the language and passes
 # the required inputs to each.
 # -
-name: flow-selector
+name: orchestrator-flow
 on:
     workflow_call:
-        # all inputs are required, so I do not forget to add them on inheriting pipelines, we'll see in the future if this holds at scale.
-        # it will make it clearer to have all options on repositories workflows explicitly declared.
-        # when more flows are added, many of these inputs will revert to 'required: false' as a few will not make sense for a given set of tools.
         inputs:
             build_tool:
                 required: true
-                description: "build tool used by the project"
+                description: "build tool used by the project. Options are {Maven, Gradle, npm, sbt}. Only maven is valid momentarily."
                 type: string
-                default: 'maven' # options are {maven, Gradle, npm, sbt}. Only maven is valid. This is here as a proof for the abstraction.
+                default: 'maven'
             build_type:
                 required: true
                 description: 'final object type to be built by the pipeline'
@@ -24,11 +21,12 @@ on:
                 required: true
                 description: 'Supports: oracle, temurin and openjdk (via https://jdk.java.net/ download). Default: oracle'
                 type: string
+                default: 'oracle'
             language:
                 required: true
-                description: 'language to use on the runner'
+                description: 'Language to use on the runner. Options are {java, scala, Node.js, go}. Only java is valid momentarily'
                 type: string
-                default: 'java' # options are {java, scala, Node.js, go}. Only java is valid. This is here as a proof for the abstraction.
+                default: 'java'
             language_version:
                 required: true
                 description: 'language version to use on the runner'
@@ -64,7 +62,7 @@ on:
                 type: string
                 default: 'patch'
             versioning_version:
-                required: true
+                required: false
                 description: 'Manually setting a version'
                 type: string
             workflow_dry_run:

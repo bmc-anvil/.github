@@ -51,7 +51,7 @@ runs:
         -   name: Set up other supported JDKs
             id: setup-java-other-jdk
             if: ${{ contains(fromJSON(inputs.supported_vendors_gh_action), inputs.java_vendor) }}
-            uses: actions/setup-java@v5
+            uses: actions/setup-java@v5.2.0
             with:
                 distribution: ${{ inputs.java_vendor }}
                 java-version: ${{ inputs.java_version }}
