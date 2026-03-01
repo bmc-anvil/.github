@@ -89,7 +89,7 @@ jobs:
                 uses: bmc-anvil/.github/.github/actions/language/jvm/build_tools/maven/cache@main
 
             -   name: Run Checkstyle
-                uses: bmc-anvil/.github/.github/actions/language/jvm/build_tools/maven/static_analysis/checkstyle@main
+                uses: bmc-anvil/.github/.github/actions/language/jvm/build_tools/maven/static-analysis/checkstyle@main
                 with:
                     github-token: ${{ secrets.GITHUB_TOKEN }}
                     static_analysis_checkstyle_fail_on_violations: ${{ inputs.static_analysis_checkstyle_fail_on_violations }}
