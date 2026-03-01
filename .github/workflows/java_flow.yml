@@ -70,45 +70,45 @@ jobs:
         # we are currently only building artifacts and not docker images...
         # in time, we'll add the docker variations step
         steps:
-            -   name: checkout
-                uses: actions/checkout@v6.0.2
+#            -   name: checkout
+#                uses: actions/checkout@v6.0.2
 
             -   name: Set up Java
-                uses: ./.github/actions/setup-java
+                uses: bmc-anvil/.github/.github/actions/setup-java@main
                 with:
                     java_version: ${{ inputs.java_version }}
                     java_vendor: ${{ inputs.java_vendor }}
 
             -   name: Set up Maven
-                uses: ./.github/actions/maven/setup-maven
+                uses: bmc-anvil/.github/.github/actions/maven/setup-maven@main
                 with:
                     packages_user: ${{ secrets.PACKAGES_USER }}
                     packages_token: ${{ secrets.PACKAGES_TOKEN_RW }}
 
             -   name: Cache Maven dependencies
-                uses: ./.github/actions/maven/cache
+                uses: bmc-anvil/.github/.github/actions/maven/cache@main
 
             -   name: Run Checkstyle
-                uses: ./.github/actions/maven/static_analysis/checkstyle
+                uses: bmc-anvil/.github/.github/actions/maven/static_analysis/checkstyle@main
                 with:
                     github-token: ${{ secrets.GITHUB_TOKEN }}
                     static_analysis_checkstyle_fail_on_violations: ${{ inputs.static_analysis_checkstyle_fail_on_violations }}
                     static_analysis_checkstyle_skip: ${{ inputs.static_analysis_checkstyle_skip }}
 
             -   name: Build and Test
-                uses: ./.github/actions/maven/build-verify
+                uses: bmc-anvil/.github/.github/actions/maven/build-verify@main
                 continue-on-error: true
 
             -   name: Set up Version
-                uses: ./.github/actions/common/semver
+                uses: bmc-anvil/.github/.github/actions/common/semver@main
             #                if: ${{ inputs.deploy_package == true}} let's see how this works...
 
             -   name: Set up Version in Build Tool
-                uses: ./.github/actions/maven/setup-version
+                uses: bmc-anvil/.github/.github/actions/maven/setup-version@main
             #                if: ${{ inputs.deploy_package == true}} let's see how this works...
 
             -   name: Deploy to Github Packages Registry
-                uses: ./.github/actions/maven/deploy-package
+                uses: bmc-anvil/.github/.github/actions/maven/deploy-package@main
                 if: ${{ inputs.deploy_package == true}}
                 with:
                     github-token: ${{ secrets.PACKAGES_TOKEN_RW }}
