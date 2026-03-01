@@ -2,17 +2,34 @@ name: 'Java Flow'
 on:
     workflow_call:
         inputs:
+            build_tool:
+                required: true
+                description: "build tool used by the project. Options are {Maven, Gradle, npm, sbt}. Only maven is valid momentarily."
+                type: string
+                default: 'maven'
+            build_type:
+                required: true
+                description: 'final object type to be built by the pipeline. Options are {artifact, docker_image_jvm, docker_image_graal_native}. Default: artifact'
+                type: string
+                default: 'artifact'
             java_vendor:
                 required: false
                 description: 'Supported vendors: oracle (default), temurin and openjdk (via https://jdk.java.net/ download).'
                 type: string
+                default: 'oracle'
             java_version:
                 required: false
                 description: 'Java version'
                 type: string
+                default: '25'
             deploy_package:
                 required: false
                 description: "Flag to deploy a package to GH Registry"
+                type: boolean
+                default: false
+            services_docker_in_docker:
+                required: true
+                description: "configures the pipeline as requiring a docker in docker setup, for 'test containers' for example"
                 type: boolean
                 default: false
             static_analysis_checkstyle_fail_on_violations:
@@ -45,6 +62,8 @@ jobs:
             packages: write
             security-events: write
 
+        # we are currently only building artifacts and not docker images...
+        # in time, we'll add the docker variations step
         steps:
             -   name: Set up Java
                 uses: ./.github/actions/setup-java@main

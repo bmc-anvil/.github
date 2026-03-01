@@ -11,27 +11,22 @@ on:
                 required: true
                 description: "build tool used by the project. Options are {Maven, Gradle, npm, sbt}. Only maven is valid momentarily."
                 type: string
-                default: 'maven'
             build_type:
                 required: true
-                description: 'final object type to be built by the pipeline'
+                description: 'final object type to be built by the pipeline. Options are {artifact, docker_image_jvm, docker_image_graal_native}. Default: artifact'
                 type: string
-                default: 'artifact' # options are {artifact, docker_image_jvm, docker_image_graal_native, docker_image_graal_native_multiarch(?)}
             java_vendor:
                 required: true
                 description: 'Supports: oracle, temurin and openjdk (via https://jdk.java.net/ download). Default: oracle'
                 type: string
-                default: 'oracle'
             language:
                 required: true
                 description: 'Language to use on the runner. Options are {java, scala, Node.js, go}. Only java is valid momentarily'
                 type: string
-                default: 'java'
             language_version:
                 required: true
                 description: 'language version to use on the runner'
                 type: string
-                default: 'latest'
             services_docker_in_docker:
                 required: true
                 description: "configures the pipeline as requiring a docker in docker setup, for 'test containers' for example"
