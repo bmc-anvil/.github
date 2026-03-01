@@ -3,7 +3,7 @@
 # this workflow executes the bare minimum steps common to all other workflows and then selects the appropriate workflow to run based on the language and passes
 # the required inputs to each.
 # -
-name: orchestrator-flow
+name: 'Orchestrator Flow'
 on:
     workflow_call:
         inputs:

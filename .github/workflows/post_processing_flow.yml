@@ -1,4 +1,4 @@
-name: post_processing_flow.yml
+name: 'Post Processing Flow'
 on:
     workflow_call:
 
