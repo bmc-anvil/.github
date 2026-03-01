@@ -15,7 +15,7 @@ jobs:
                     echo "Pre-processing flow started"
 
             -   name: Checkout the repository
-                uses: actions/checkout@v6
+                uses: actions/checkout@v6.0.2
 
             -   name: wrap pre-processing
                 shell: bash
