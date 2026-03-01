@@ -71,41 +71,41 @@ jobs:
         # in time, we'll add the docker variations step
         steps:
             -   name: Set up Java
-                uses: ./.github/actions/setup-java@main
+                uses: ./.github/actions/setup-java
                 with:
                     java_version: ${{ inputs.java_version }}
                     java_vendor: ${{ inputs.java_vendor }}
 
             -   name: Set up Maven
-                uses: ./.github/actions/maven/setup-maven@main
+                uses: ./.github/actions/maven/setup-maven
                 with:
                     packages_user: ${{ secrets.PACKAGES_USER }}
                     packages_token: ${{ secrets.PACKAGES_TOKEN_RW }}
 
             -   name: Cache Maven dependencies
-                uses: ./.github/actions/maven/cache@main
+                uses: ./.github/actions/maven/cache
 
             -   name: Run Checkstyle
-                uses: ./.github/actions/maven/static_analysis/checkstyle@main
+                uses: ./.github/actions/maven/static_analysis/checkstyle
                 with:
                     github-token: ${{ secrets.GITHUB_TOKEN }}
                     static_analysis_checkstyle_fail_on_violations: ${{ inputs.static_analysis_checkstyle_fail_on_violations }}
                     static_analysis_checkstyle_skip: ${{ inputs.static_analysis_checkstyle_skip }}
 
             -   name: Build and Test
-                uses: ./.github/actions/maven/build-verify@main
+                uses: ./.github/actions/maven/build-verify
                 continue-on-error: true
 
             -   name: Set up Version
-                uses: ./.github/actions/common/semver@main
+                uses: ./.github/actions/common/semver
             #                if: ${{ inputs.deploy_package == true}} let's see how this works...
 
             -   name: Set up Version in Build Tool
-                uses: ./.github/actions/maven/setup-version@main
+                uses: ./.github/actions/maven/setup-version
             #                if: ${{ inputs.deploy_package == true}} let's see how this works...
 
             -   name: Deploy to Github Packages Registry
-                uses: ./.github/actions/maven/deploy-package@main
+                uses: ./.github/actions/maven/deploy-package
                 if: ${{ inputs.deploy_package == true}}
                 with:
                     github-token: ${{ secrets.PACKAGES_TOKEN_RW }}
