@@ -70,8 +70,8 @@ jobs:
         # we are currently only building artifacts and not docker images...
         # in time, we'll add the docker variations step
         steps:
-#            -   name: checkout
-#                uses: actions/checkout@v6.0.2
+            -   name: checkout
+                uses: actions/checkout@v6.0.2
 
             -   name: Set up Java
                 uses: bmc-anvil/.github/.github/actions/setup-java@main
