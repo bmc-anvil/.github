@@ -88,6 +88,10 @@ jobs:
         needs: pre-processing-flow
         if: ${{ inputs.language == 'java' }}
         uses: ./.github/workflows/java_flow.yml
+        secrets:
+            PACKAGES_USER: ${{ secrets.PACKAGES_USER }}
+            PACKAGES_TOKEN_RW: ${{ secrets.PACKAGES_TOKEN_RW }}
+            GH_TOKEN: ${{ secrets.GH_TOKEN }}
         with:
             build_tool: ${{inputs.build_tool}}
             build_type: ${{inputs.build_type}}
@@ -97,7 +101,6 @@ jobs:
             static_analysis_checkstyle_fail_on_violations: ${{inputs.static_analysis_checkstyle_fail_on_violations}}
             static_analysis_checkstyle_skip: ${{inputs.static_analysis_checkstyle_skip}}
             testing_options_skip: ${{inputs.testing_options_skip}}
-        secrets: inherit
 
     post-processing-flow:
         needs: [ pre-processing-flow, flow-selector-java ]
