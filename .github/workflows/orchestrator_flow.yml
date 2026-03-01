@@ -96,7 +96,8 @@ jobs:
             services_docker_in_docker: ${{inputs.services_docker_in_docker}}
             static_analysis_checkstyle_fail_on_violations: ${{inputs.static_analysis_checkstyle_fail_on_violations}}
             static_analysis_checkstyle_skip: ${{inputs.static_analysis_checkstyle_skip}}
-            test_options_skip: ${{inputs.test_options_skip}}
+            testing_options_skip: ${{inputs.testing_options_skip}}
+        secrets: inherit
 
     post-processing-flow:
         needs: [ pre-processing-flow, flow-selector-java ]

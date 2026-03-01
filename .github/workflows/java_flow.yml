@@ -42,6 +42,11 @@ on:
                 description: 'Flag to skip the checkstyle validation step altogether'
                 type: boolean
                 default: false
+            testing_options_skip:
+                required: true
+                description: 'skip all tests'
+                type: boolean
+                default: false
 
         secrets:
             PACKAGES_USER:
