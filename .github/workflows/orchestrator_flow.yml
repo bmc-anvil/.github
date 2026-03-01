@@ -87,7 +87,7 @@ jobs:
     flow-selector-java:
         needs: pre-processing-flow
         if: ${{ inputs.language == 'java' }}
-        uses: ./.github/workflows/java-flow.yml
+        uses: ./.github/workflows/java_flow.yml
         with:
             build_tool: ${{inputs.build_tool}}
             build_type: ${{inputs.build_type}}
