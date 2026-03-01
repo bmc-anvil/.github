@@ -34,6 +34,9 @@ inputs:
 runs:
     using: "composite"
     steps:
+        -   name: checkout
+            uses: actions/checkout@v6.0.2
+
         -   name: Validate supported vendors
             if: ${{ !contains(fromJSON(inputs.supported_vendors_all), inputs.java_vendor) }}
             shell: bash
