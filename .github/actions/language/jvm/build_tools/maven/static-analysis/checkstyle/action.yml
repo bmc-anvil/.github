@@ -5,7 +5,7 @@ inputs:
     github-token:
         required: true
         description: 'The github token to authenticate this action'
-    fail-static_analysis_checkstyle_fail_on_violations:
+    static_analysis_checkstyle_fail_on_violations:
         required: true
         description: 'Flag to fail or not the pipeline on checkstyle violations'
         default: 'true'
@@ -21,7 +21,7 @@ runs:
             if: ${{ inputs.static_analysis_checkstyle_skip != 'true' }}
             shell: bash
             run: |
-                ./mvnw checkstyle:check -Dcheckstyle.failOnViolation="${{ inputs.fail-static_analysis_checkstyle_fail_on_violations }}"
+                ./mvnw checkstyle:check -Dcheckstyle.failOnViolation="${{ inputs.static_analysis_checkstyle_fail_on_violations }}"
 
         -   name: Upload SARIF to GitHub Security tab
             if: ${{ inputs.static_analysis_checkstyle_skip != 'true' }}
