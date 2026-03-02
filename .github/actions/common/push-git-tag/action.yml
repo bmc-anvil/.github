@@ -3,6 +3,7 @@ description: 'Pushes a git tag from environment variable PROJECT_VERSION'
 
 runs:
     using: "composite"
+#    this needs to add 1 to a patch version in case it exists and update the project version so then we can use it on the build tool
     steps:
         -   name: Create and push git tag from PROJECT_VERSION environment variable
             shell: bash
@@ -17,5 +18,5 @@ runs:
                     IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
                 fi
                 
-                git tag -a "${{ env.PROJECT_VERSION }}" -m "Release ${env.PROJECT_VERSION}"
+                git tag -a "${{ env.PROJECT_VERSION }}" -m "Release ${{ env.PROJECT_VERSION }}"
                 git push origin "${{ env.PROJECT_VERSION }}" --force-with-lease
