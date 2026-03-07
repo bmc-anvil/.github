@@ -12,6 +12,11 @@ on:
                 description: 'final object type to be built by the pipeline. Options are {artifact, docker_image_jvm, docker_image_graal_native}. Default: artifact'
                 type: string
                 default: 'artifact'
+            deploy_package:
+                required: false
+                description: "Flag to deploy a package to GH Registry"
+                type: boolean
+                default: false
             java_vendor:
                 required: false
                 description: 'Supported vendors: oracle (default), temurin and openjdk (via https://jdk.java.net/ download).'
@@ -22,11 +27,6 @@ on:
                 description: 'Java version'
                 type: string
                 default: '25'
-            deploy_package:
-                required: false
-                description: "Flag to deploy a package to GH Registry"
-                type: boolean
-                default: false
             services_docker_in_docker:
                 required: true
                 description: "configures the pipeline as requiring a docker in docker setup, for 'test containers' for example"
@@ -109,15 +109,14 @@ jobs:
                 uses: bmc-anvil/.github/.github/actions/common/semver@main
                 with:
                     versioning_version: ${{ inputs.versioning_version }}
-            #                if: ${{ inputs.deploy_package == true}} let's see how this works...
+                if: ${{ inputs.deploy_package == true}}
 
             -   name: Set up Version in Build Tool
                 uses: bmc-anvil/.github/.github/actions/language/jvm/build_tools/maven/setup-version@main
-            #                if: ${{ inputs.deploy_package == true}} let's see how this works...
+                if: ${{ inputs.deploy_package == true}}
 
             -   name: Deploy to Github Packages Registry
                 uses: bmc-anvil/.github/.github/actions/language/jvm/build_tools/maven/deploy-package@main
                 if: ${{ inputs.deploy_package == true}}
                 with:
                     github-token: ${{ secrets.PACKAGES_TOKEN_RW }}
-                    deploy-package: ${{ inputs.deploy_package }}

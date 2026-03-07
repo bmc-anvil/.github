@@ -19,6 +19,11 @@ on:
                 required: true
                 description: 'Supports: oracle, temurin and openjdk (via https://jdk.java.net/ download). Default: oracle'
                 type: string
+            deploy_package:
+                required: false
+                description: "Flag to deploy a package to GH Registry"
+                type: boolean
+                default: false
             language:
                 required: true
                 description: 'Language to use on the runner. Options are {java, scala, Node.js, go}. Only java is valid momentarily'
@@ -90,6 +95,7 @@ jobs:
         with:
             build_tool: ${{inputs.build_tool}}
             build_type: ${{inputs.build_type}}
+            deploy_package: ${{inputs.deploy_package}}
             java_vendor: ${{inputs.java_vendor}}
             java_version: ${{inputs.language_version}}
             services_docker_in_docker: ${{inputs.services_docker_in_docker}}

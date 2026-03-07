@@ -62,8 +62,10 @@ runs:
                 
                 # Get the commit message for SemVer setup
                 MSG=$(git log -1 --pretty=%B)
-                echo "Commit message:"
+                echo "Commit message from tag $LAST_TAG:"
+                echo "---"
                 echo "$MSG"
+                echo "---"
                 
                 if echo "$MSG" | grep -q ">>major"; then
                   SEMVER_BUMP="major"
