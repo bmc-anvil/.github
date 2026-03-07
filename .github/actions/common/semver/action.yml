@@ -2,84 +2,136 @@ name: 'Semantic Versioning'
 description: 'Semantic Versioning with automatic and manual dispatch'
 
 inputs:
-    version:
+    versioning_version:
         description: 'Explicit version for manual dispatch (i.e., 1.2.3, no letters supported momentarily, maybe never)'
         required: false
-    semver_bump:
-        description: "SemVer bump type for manual dispatch: major|minor|patch ('none' is not supported momentarily, maybe never)"
-        required: false
-        default: "patch"
+
 
 runs:
     using: "composite"
     steps:
+        -   name: checkout
+            uses: actions/checkout@v6.0.2
+
         -   name: Set version from release tag (manual dispatch)
             shell: bash
             if: ${{ github.event_name == 'release' }}
             run: |
-                echo "PROJECT_VERSION=${{ github.event.release.tag_name }}" >> $GITHUB_ENV
+                echo "PROJECT_VERSION=${{ github.event.release.tag_name }}" >>"$GITHUB_ENV"
 
         -   name: Set version from within actions (manual dispatch)
             shell: bash
-            if: ${{ github.event_name == 'workflow_dispatch' && inputs.version != '' }}
+            if: ${{ github.event_name == 'workflow_dispatch' && inputs.versioning_version != '' }}
             run: |
-                echo "PROJECT_VERSION=${{ inputs.version }}" >> $GITHUB_ENV
+                echo "PROJECT_VERSION=${{ inputs.versioning_version }}" >>"$GITHUB_ENV"
 
         -   name: Set version using git hash ref on non-main branches
             shell: bash
             if: ${{ github.ref != 'refs/heads/main' && github.event_name != 'release' && github.event_name != 'workflow_dispatch' }}
             run: |
-                echo "using git hash ref as PROJECT_VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
+                echo "using git hash ref as PROJECT_VERSION=${{ github.ref_name }}" >>"$GITHUB_ENV"
 
         -   name: Set version using SemVer on main branch
             shell: bash
             if: ${{ github.ref == 'refs/heads/main' && github.event_name != 'release' && github.event_name != 'workflow_dispatch' }}
 
             run: |
-                # fail fast directive
+                # Fail fast directive
                 set -euo pipefail
                 
-                # Default SEMVER_BUMP comes from inputs (defaults to 'patch')
-                SEMVER_BUMP="${{ inputs.semver_bump }}"
-
-                # Commit message SemVer override
-                MSG=$(git log -1 --pretty=%B)
-                if echo "$MSG" | grep -q ">>major"; then SEMVER_BUMP="major"; fi
-                if echo "$MSG" | grep -q ">>minor"; then SEMVER_BUMP="minor"; fi
                 # Latest tag (X.Y.Z); fallback to v0.0.1
-
+                git fetch --tags origin
                 LAST_TAG=$(git tag --list --sort=-v:refname | head -n1)
-                if [ -z "$LAST_TAG" ]; then LAST_TAG="0.0.1"; fi
-                echo "Bumping from latest tag: $LAST_TAG"
-
-                VERSION=${LAST_TAG}
+                if [ -z "$LAST_TAG" ]; then
+                  LAST_TAG="0.0.1"
+                  echo "No tags found for repo defaulting to: $LAST_TAG"
+                else
+                  echo "Bumping from latest tag: $LAST_TAG"
+                fi
+                
                 # Sanitize last tag: remove pre-release/build suffixes (anything after - or +)
-                VERSION=$(echo "$VERSION" | sed 's/[-+].*//')
+                VERSION=$(echo "$LAST_TAG" | sed 's/[-+].*//')
                 
-                # Ensure at least 3 parts (X.Y.Z), padding with .0 if needed
-                PARTS=(${VERSION//./ })
-                LEN=${#PARTS[@]}
-                if [ $LEN -lt 3 ]; then
-                  VERSION="${VERSION}.0"
-                  if [ $LEN -eq 1 ]; then VERSION="${VERSION}.0"; fi
+                # Validate the version format
+                if ! echo "$VERSION" | grep -q -E '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+                  echo "Error: Invalid version format in tag '$LAST_TAG'. Expected X.Y.Z format with only numeric components. Example: 1.0.0 is valid, 1.0.0-test is not."
+                  exit 1
                 fi
                 
-                # Parse MAJOR, MINOR, PATCH
-                IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+                # Get the 3 parts of the version
+                IFS='.' read -r MAJOR MINOR PATCH <<<"$VERSION"
                 
-                # If PATCH is not numeric (e.g., "test"), set to 1
-                if ! [[ $PATCH =~ ^[0-9]+$ ]]; then PATCH=1; fi
-
+                # Get the commit message for SemVer setup
+                MSG=$(git log -1 --pretty=%B)
+                echo "Commit message:"
+                echo "$MSG"
+                
+                if echo "$MSG" | grep -q ">>major"; then
+                  SEMVER_BUMP="major"
+                  echo "Will update 'major' version"
+                elif echo "$MSG" | grep -q ">>minor"; then
+                  SEMVER_BUMP="minor"
+                  echo "Will update 'minor' version"
+                else
+                  # Default to patch version bump
+                  SEMVER_BUMP="patch"
+                  echo "Will update 'patch' version"
+                fi
+                
                 case "$SEMVER_BUMP" in
-                  major) MAJOR=$((MAJOR+1)); MINOR=0; PATCH=0 ;;
-                  minor) MINOR=$((MINOR+1)); PATCH=0 ;;
-                  patch) PATCH=$((PATCH+1)) ;;
-                  *) echo "Invalid SEMVER_BUMP: $SEMVER_BUMP"; exit 1 ;;
+                major)
+                  MAJOR=$((MAJOR + 1))
+                  MINOR=0
+                  PATCH=0
+                  ;;
+                minor)
+                  MINOR=$((MINOR + 1))
+                  PATCH=0
+                  ;;
+                patch)
+                  PATCH=$((PATCH + 1))
+                  ;;
+                *)
+                  echo "Error: Invalid SEMVER_BUMP: $SEMVER_BUMP, exiting"
+                  exit 1
+                  ;;
                 esac
-
-                NEW_TAG="${MAJOR}.${MINOR}.${PATCH}"
-                echo "PROJECT_VERSION=$NEW_TAG" >> $GITHUB_ENV
-                fi
-
-        -   name: push version as git tag
-            uses: bmc-anvil/.github/.github/actions/common/push-git-tag@main
+                
+                # configuring git with actions user
+                git config --global user.email "github-actions[bot]@users.noreply.github.com"
+                git config --global user.name "github-actions[bot]"
+                
+                # Retry loop for pushing the tag (only check remote conflicts, pipelines are ephemeral)
+                for ATTEMPT in 1 2 3 4 5; do
+                  NEW_TAG="${MAJOR}.${MINOR}.${PATCH}"
+                  echo "New tag will be: $NEW_TAG"
+                  echo "Attempt: $ATTEMPT of 5: trying tag: $NEW_TAG"
+                
+                  git tag "$NEW_TAG"
+                
+                  # push to remote
+                  if PUSH_OUTPUT=$(git push origin "$NEW_TAG" 2>&1); then
+                    echo "PROJECT_VERSION=$NEW_TAG" >>"$GITHUB_ENV"
+                    echo "Successfully pushed tag: $NEW_TAG"
+                    exit 0
+                  fi
+                
+                  echo "remote error push output for troubleshooting"
+                  echo "$PUSH_OUTPUT"
+                
+                  # if push to remote fails, try to identify why...
+                  # if it was because the tag exists... let's retry...
+                  if git ls-remote --exit-code --tags origin "refs/tags/$NEW_TAG" >/dev/null 2>&1; then
+                    echo "Push failed because tag $NEW_TAG already exists remotely, incrementing patch"
+                    PATCH=$((PATCH + 1))
+                    continue
+                  # if it was not because the tag exists... let's abort early.
+                  else
+                    echo "Push failed for tag $NEW_TAG, aborting early."
+                    exit 1
+                  fi
+                
+                done
+                
+                echo "Failed to create and push a unique tag after 5 attempts"
+                exit 1

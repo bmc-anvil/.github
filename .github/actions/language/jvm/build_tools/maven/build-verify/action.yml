@@ -15,4 +15,5 @@ runs:
             env:
                 GITHUB_TOKEN: ${{ inputs.github-token }}
             run: |
+                echo "running ./mvnw verify" 
                 ./mvnw verify

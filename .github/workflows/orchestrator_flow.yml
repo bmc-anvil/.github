@@ -51,11 +51,6 @@ on:
                 description: 'skip all tests'
                 type: boolean
                 default: false
-            versioning_semver_bump:
-                required: true
-                description: "SemVer bump type for manual dispatch: major|minor|patch ('none' is not supported momentarily, maybe never)"
-                type: string
-                default: 'patch'
             versioning_version:
                 required: false
                 description: 'Manually setting a version'
@@ -101,6 +96,7 @@ jobs:
             static_analysis_checkstyle_fail_on_violations: ${{inputs.static_analysis_checkstyle_fail_on_violations}}
             static_analysis_checkstyle_skip: ${{inputs.static_analysis_checkstyle_skip}}
             testing_options_skip: ${{inputs.testing_options_skip}}
+            versioning_version: ${{inputs.versioning_version}}
 
     post-processing-flow:
         needs: [ pre-processing-flow, flow-selector-java ]

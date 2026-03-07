@@ -47,6 +47,10 @@ on:
                 description: 'skip all tests'
                 type: boolean
                 default: false
+            versioning_version:
+                required: false
+                description: 'Manually setting a version'
+                type: string
 
         secrets:
             PACKAGES_USER:
@@ -103,6 +107,8 @@ jobs:
 
             -   name: Set up Version
                 uses: bmc-anvil/.github/.github/actions/common/semver@main
+                with:
+                    versioning_version: ${{ inputs.versioning_version }}
             #                if: ${{ inputs.deploy_package == true}} let's see how this works...
 
             -   name: Set up Version in Build Tool
