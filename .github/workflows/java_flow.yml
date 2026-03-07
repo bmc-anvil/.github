@@ -67,7 +67,7 @@ jobs:
     java-flow:
         runs-on: ubuntu-latest
         permissions:
-            contents: read
+            contents: write
             packages: write
             security-events: write
 

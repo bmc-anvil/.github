@@ -6,7 +6,6 @@ inputs:
         description: 'Explicit version for manual dispatch (i.e., 1.2.3, no letters supported momentarily, maybe never)'
         required: false
 
-
 runs:
     using: "composite"
     steps:
@@ -127,6 +126,10 @@ runs:
                     continue
                   # if it was not because the tag exists... let's abort early.
                   else
+                    echo "remote error push output for troubleshooting:"
+                    echo "---"
+                    echo "$PUSH_OUTPUT"
+                    echo "---"
                     echo "Push failed for tag $NEW_TAG, aborting early."
                     exit 1
                   fi
