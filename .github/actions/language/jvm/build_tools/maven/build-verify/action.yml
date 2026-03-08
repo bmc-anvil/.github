@@ -1,19 +1,11 @@
 name: 'Build and test project with Maven'
-description: 'Builds and test project leaving the artifact ready for next steps'
-
-inputs:
-    github-token:
-        required: true
-        description: 'The GH Token'
+description: 'Builds and test project'
 
 runs:
     using: "composite"
     steps:
-        -   name: Deploy Project to Registry
+        -   name: Run maven verify phase
             shell: bash
-            if: ${{ inputs.deploy-package == 'true' }}
-            env:
-                GITHUB_TOKEN: ${{ inputs.github-token }}
             run: |
                 echo "running ./mvnw verify" 
                 ./mvnw verify

@@ -102,8 +102,6 @@ jobs:
             -   name: Build and Test
                 uses: bmc-anvil/.github/.github/actions/language/jvm/build_tools/maven/build-verify@main
                 continue-on-error: true
-                with:
-                    github-token: ${{secrets.GITHUB_TOKEN}}
 
             -   name: Set up Version
                 uses: bmc-anvil/.github/.github/actions/common/versioning@main
