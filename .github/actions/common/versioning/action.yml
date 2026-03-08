@@ -35,7 +35,7 @@ runs:
             if: ${{ github.ref != 'refs/heads/main' && github.event_name != 'release' && github.event_name != 'workflow_dispatch' }}
             run: |
                 SHORT_SHA="${GITHUB_SHA::7}"
-                echo "using short git SHA: $"SHORT_SHA" as PROJECT_VERSION"
+                echo "using short git SHA: '$SHORT_SHA' as PROJECT_VERSION"
                 echo "PROJECT_VERSION=$SHORT_SHA" >>"$GITHUB_ENV"
 
         -   name: validate release or manually set version
