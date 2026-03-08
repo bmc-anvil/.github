@@ -1,10 +1,5 @@
 name: 'Semantic Versioning'
-description: 'Semantic Versioning with automatic and manual dispatch'
-
-inputs:
-    versioning_version:
-        description: 'Explicit version for manual dispatch (i.e., 1.2.3, no letters supported momentarily, maybe never)'
-        required: false
+description: 'Semantic Versioning'
 
 runs:
     using: "composite"
@@ -12,28 +7,8 @@ runs:
         -   name: checkout
             uses: actions/checkout@v6.0.2
 
-        -   name: Set version from release tag (manual dispatch)
-            shell: bash
-            if: ${{ github.event_name == 'release' }}
-            run: |
-                echo "PROJECT_VERSION=${{ github.event.release.tag_name }}" >>"$GITHUB_ENV"
-
-        -   name: Set version from within actions (manual dispatch)
-            shell: bash
-            if: ${{ github.event_name == 'workflow_dispatch' && inputs.versioning_version != '' }}
-            run: |
-                echo "PROJECT_VERSION=${{ inputs.versioning_version }}" >>"$GITHUB_ENV"
-
-        -   name: Set version using git hash ref on non-main branches
-            shell: bash
-            if: ${{ github.ref != 'refs/heads/main' && github.event_name != 'release' && github.event_name != 'workflow_dispatch' }}
-            run: |
-                echo "using git hash ref as PROJECT_VERSION=${{ github.ref_name }}" >>"$GITHUB_ENV"
-
         -   name: Set version using SemVer on main branch
             shell: bash
-            if: ${{ github.ref == 'refs/heads/main' && github.event_name != 'release' && github.event_name != 'workflow_dispatch' }}
-
             run: |
                 # Fail fast directive
                 set -euo pipefail

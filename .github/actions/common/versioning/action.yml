@@ -1,0 +1,56 @@
+name: 'Project Versioning'
+description: 'Semantic Versioning with automatic and manual dispatch'
+
+inputs:
+    versioning_version:
+        description: 'Explicit version for manual dispatch (i.e., 1.2.3, no letters supported momentarily, maybe never)'
+        required: false
+
+runs:
+    using: "composite"
+    steps:
+        -   name: checkout
+            uses: actions/checkout@v6.0.2
+
+        -   name: Set version from release tag (manual dispatch)
+            shell: bash
+            if: ${{ github.event_name == 'release' }}
+            run: |
+                echo "using release tag name as PROJECT_VERSION"
+                echo "PROJECT_VERSION=${{ github.event.release.tag_name }}" >>"$GITHUB_ENV"
+
+        -   name: Set version from within actions (manual dispatch)
+            shell: bash
+            if: ${{ github.event_name == 'workflow_dispatch' }}
+            run: |
+                echo "using manually set PROJECT_VERSION: ${{ inputs.versioning_version }}"
+                if [ -z "${{ inputs.versioning_version }}" ]; then
+                    echo "Error: incorrect version set"
+                    exit 1
+                else
+                    echo "PROJECT_VERSION=${{ inputs.versioning_version }}" >>"$GITHUB_ENV"
+                fi
+
+        -   name: Set version using git hash ref on non-main branches
+            shell: bash
+            if: ${{ github.ref != 'refs/heads/main' && github.event_name != 'release' && github.event_name != 'workflow_dispatch' }}
+            run: |
+                echo "using git hash ref as PROJECT_VERSION"
+                echo "PROJECT_VERSION=${{ github.ref_name }}" >>"$GITHUB_ENV"
+
+        -   name: validate manually set versions on main
+            shell: bash
+            if: ${{ github.ref == 'refs/heads/main' }}
+            run: |
+                if ! echo "$PROJECT_VERSION" | grep -q -E '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+                    echo "---"
+                    echo "Error: Invalid version format: '$PROJECT_VERSION'."
+                    echo "Error: Expected X.Y.Z format with only numeric components."
+                    echo "Error: Example: 1.0.0 is valid, 1.0.0-test is not."
+                    echo "---"
+                    exit 1
+                fi
+
+        -   name: Set version using SemVer on main branch
+            if: ${{ github.ref == 'refs/heads/main' && github.event_name != 'release' && github.event_name != 'workflow_dispatch' }}
+            uses: bmc-anvil/.github/.github/actions/common/semver@main

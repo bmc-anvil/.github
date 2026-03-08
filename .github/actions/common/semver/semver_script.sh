@@ -1,0 +1,106 @@
+# This script exists with the purpose of easier debugging "locally" and on editors instead of as part of pipeline yaml.
+# Sync with the actual pipeline action should be always up to date, but not guaranteed.
+#!/bin/bash
+
+# Fail fast directive
+set -euo pipefail
+
+# Latest tag (X.Y.Z); fallback to v0.0.1
+git fetch --tags origin
+LAST_TAG=$(git tag --list --sort=-v:refname | head -n1)
+if [ -z "$LAST_TAG" ]; then
+  LAST_TAG="0.0.1"
+  echo "No tags found for repo defaulting to: $LAST_TAG"
+else
+  echo "Bumping from latest tag: $LAST_TAG"
+fi
+
+# Sanitize last tag: remove pre-release/build suffixes (anything after - or +)
+VERSION=$(echo "$LAST_TAG" | sed 's/[-+].*//')
+
+# Validate the version format
+if ! echo "$VERSION" | grep -q -E '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+  echo "Error: Invalid version format in tag '$LAST_TAG'. Expected X.Y.Z format with only numeric components. Example: 1.0.0 is valid, 1.0.0-test is not."
+  exit 1
+fi
+
+# Get the 3 parts of the version
+IFS='.' read -r MAJOR MINOR PATCH <<<"$VERSION"
+
+# Get the commit message for SemVer setup
+MSG=$(git log -1 --pretty=%B)
+echo "Commit message from tag $LAST_TAG:"
+echo "---"
+echo "$MSG"
+echo "---"
+
+if echo "$MSG" | grep -q ">>major"; then
+  SEMVER_BUMP="major"
+  echo "Will update 'major' version"
+elif echo "$MSG" | grep -q ">>minor"; then
+  SEMVER_BUMP="minor"
+  echo "Will update 'minor' version"
+else
+  # Default to patch version bump
+  SEMVER_BUMP="patch"
+  echo "Will update 'patch' version"
+fi
+
+case "$SEMVER_BUMP" in
+major)
+  MAJOR=$((MAJOR + 1))
+  MINOR=0
+  PATCH=0
+  ;;
+minor)
+  MINOR=$((MINOR + 1))
+  PATCH=0
+  ;;
+patch)
+  PATCH=$((PATCH + 1))
+  ;;
+*)
+  echo "Error: Invalid SEMVER_BUMP: $SEMVER_BUMP, exiting"
+  exit 1
+  ;;
+esac
+
+# configuring git with actions user
+git config --global user.email "github-actions[bot]@users.noreply.github.com"
+git config --global user.name "github-actions[bot]"
+
+# Retry loop for pushing the tag (only check remote conflicts, pipelines are ephemeral)
+for ATTEMPT in 1 2 3 4 5; do
+  NEW_TAG="${MAJOR}.${MINOR}.${PATCH}"
+  echo "New tag will be: $NEW_TAG"
+  echo "Attempt: $ATTEMPT of 5: trying tag: $NEW_TAG"
+
+  git tag "$NEW_TAG"
+
+  # push to remote
+  if PUSH_OUTPUT=$(git push origin "$NEW_TAG" 2>&1); then
+    echo "PROJECT_VERSION=$NEW_TAG" >>"$GITHUB_ENV"
+    echo "Successfully pushed tag: $NEW_TAG"
+    exit 0
+  fi
+
+  # if push to remote fails, try to identify why...
+  # if it was because the tag exists... let's retry...
+  if git ls-remote --exit-code --tags origin "refs/tags/$NEW_TAG" >/dev/null 2>&1; then
+    echo "Push failed because tag $NEW_TAG already exists remotely, incrementing patch"
+    PATCH=$((PATCH + 1))
+    continue
+  # if it was not because the tag exists... let's abort early.
+  else
+    echo "remote error push output for troubleshooting:"
+    echo "---"
+    echo "$PUSH_OUTPUT"
+    echo "---"
+    echo "Push failed for tag $NEW_TAG, aborting early."
+    exit 1
+  fi
+
+done
+
+echo "Failed to create and push a unique tag after 5 attempts"
+exit 1
