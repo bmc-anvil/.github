@@ -8,7 +8,7 @@ set -euo pipefail
 # Latest tag (X.Y.Z); fallback to v0.0.1
 git fetch --tags origin
 LAST_TAG=$(git tag --list --sort=-v:refname | head -n1)
-if [ -z "$LAST_TAG" ]; then
+if [[ -z "$LAST_TAG" ]]; then
   LAST_TAG="0.0.1"
   echo "No tags found for repo defaulting to: $LAST_TAG"
 else
