@@ -12,41 +12,49 @@ runs:
         -   name: checkout
             uses: actions/checkout@v6.0.2
 
-        -   name: Set version from release tag (manual dispatch)
+        -   name: Set version from release tag
             shell: bash
             if: ${{ github.event_name == 'release' }}
             run: |
                 echo "using release tag name as PROJECT_VERSION"
                 echo "PROJECT_VERSION=${{ github.event.release.tag_name }}" >>"$GITHUB_ENV"
 
-        -   name: Set version from within actions (manual dispatch)
+        -   name: Set version from workflow dispatch input
             shell: bash
             if: ${{ github.event_name == 'workflow_dispatch' }}
             run: |
                 echo "using manually set PROJECT_VERSION: ${{ inputs.versioning_version }}"
-                if [ -z "${{ inputs.versioning_version }}" ]; then
+                if [[ -z "${{ inputs.versioning_version }}" ]]; then
                     echo "Error: incorrect version set"
                     exit 1
-                else
-                    echo "PROJECT_VERSION=${{ inputs.versioning_version }}" >>"$GITHUB_ENV"
                 fi
+                echo "PROJECT_VERSION=${{ inputs.versioning_version }}" >>"$GITHUB_ENV"
 
-        -   name: Set version using git hash ref on non-main branches
+        -   name: Set version using git sha on non-main branches
             shell: bash
             if: ${{ github.ref != 'refs/heads/main' && github.event_name != 'release' && github.event_name != 'workflow_dispatch' }}
             run: |
-                echo "using git hash ref as PROJECT_VERSION"
-                echo "PROJECT_VERSION=${{ github.ref_name }}" >>"$GITHUB_ENV"
+                echo "using short git SHA as PROJECT_VERSION"
+                SHORT_SHA="${GITHUB_SHA::7}"
+                echo "PROJECT_VERSION=$SHORT_SHA" >>"$GITHUB_ENV"
 
-        -   name: validate manually set versions on main
+        -   name: validate release or manually set version
             shell: bash
-            if: ${{ github.ref == 'refs/heads/main' }}
+            if: ${{ github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') }}
             run: |
+                if [[ -z "$PROJECT_VERSION" ]]; then
+                    echo "Error: PROJECT_VERSION is empty"
+                    exit 1
+                fi
                 if ! echo "$PROJECT_VERSION" | grep -q -E '^[0-9]+\.[0-9]+\.[0-9]+$'; then
                     echo "---"
                     echo "Error: Invalid version format: '$PROJECT_VERSION'."
                     echo "Error: Expected X.Y.Z format with only numeric components."
                     echo "Error: Example: 1.0.0 is valid, 1.0.0-test is not."
+                    if [[ "${{ github.event_name }}" == "release" ]]; then
+                        echo "ATTENTION: This is a release."
+                        echo "ATTENTION: An invalid tag has been most likely pushed. Delete the tag or manually create a valid one."
+                    fi
                     echo "---"
                     exit 1
                 fi
