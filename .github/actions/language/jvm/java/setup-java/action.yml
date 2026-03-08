@@ -35,7 +35,7 @@ runs:
     using: "composite"
     steps:
         -   name: checkout
-            uses: actions/checkout@v6.0.2
+            uses: actions/checkout@v6
 
         -   name: Validate supported vendors
             if: ${{ !contains(fromJSON(inputs.supported_vendors_all), inputs.java_vendor) }}
@@ -54,7 +54,7 @@ runs:
         -   name: Set up other supported JDKs
             id: setup-java-other-jdk
             if: ${{ contains(fromJSON(inputs.supported_vendors_gh_action), inputs.java_vendor) }}
-            uses: actions/setup-java@v5.2.0
+            uses: actions/setup-java@v5
             with:
                 distribution: ${{ inputs.java_vendor }}
                 java-version: ${{ inputs.java_version }}

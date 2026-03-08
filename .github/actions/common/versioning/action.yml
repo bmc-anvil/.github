@@ -10,7 +10,7 @@ runs:
     using: "composite"
     steps:
         -   name: checkout
-            uses: actions/checkout@v6.0.2
+            uses: actions/checkout@v6
 
         -   name: Set version from release tag
             shell: bash
@@ -34,8 +34,8 @@ runs:
             shell: bash
             if: ${{ github.ref != 'refs/heads/main' && github.event_name != 'release' && github.event_name != 'workflow_dispatch' }}
             run: |
-                echo "using short git SHA as PROJECT_VERSION"
                 SHORT_SHA="${GITHUB_SHA::7}"
+                echo "using short git SHA: $"SHORT_SHA" as PROJECT_VERSION"
                 echo "PROJECT_VERSION=$SHORT_SHA" >>"$GITHUB_ENV"
 
         -   name: validate release or manually set version

@@ -75,7 +75,7 @@ jobs:
         # in time, we'll add the docker variations step
         steps:
             -   name: checkout
-                uses: actions/checkout@v6.0.2
+                uses: actions/checkout@v6
 
             -   name: Set up Java
                 uses: bmc-anvil/.github/.github/actions/language/jvm/java/setup-java@main
@@ -107,16 +107,16 @@ jobs:
 
             -   name: Set up Version
                 uses: bmc-anvil/.github/.github/actions/common/versioning@main
+                if: ${{ inputs.deploy_package == true && github.event_name != 'pull_request' }}
                 with:
                     versioning_version: ${{ inputs.versioning_version }}
-                if: ${{ inputs.deploy_package == true}}
 
             -   name: Set up Version in Build Tool
                 uses: bmc-anvil/.github/.github/actions/language/jvm/build_tools/maven/setup-version@main
-                if: ${{ inputs.deploy_package == true}}
+                if: ${{ inputs.deploy_package == true && github.event_name != 'pull_request' }}
 
             -   name: Deploy to Github Packages Registry
                 uses: bmc-anvil/.github/.github/actions/language/jvm/build_tools/maven/deploy-package@main
-                if: ${{ inputs.deploy_package == true}}
+                if: ${{ inputs.deploy_package == true && github.event_name != 'pull_request' }}
                 with:
                     github-token: ${{ secrets.PACKAGES_TOKEN_RW }}
